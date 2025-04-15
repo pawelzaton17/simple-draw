@@ -1,0 +1,43 @@
+@use "./variables" as *;
+
+.app-footer {
+    text-align: center;
+    color: #ccc;
+    font-size: 0.9rem;
+    margin-top: 2rem;
+    padding: 1rem 0;
+    border-top: 1px solid #333;
+
+
+    &__copyrights {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 5px;
+        scale: 0.6;
+    }
+
+    &__link {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 5px;
+        text-decoration: none;
+        color: $primary-color;
+        transition: color 0.3s ease;
+        text-shadow: 0px 0px 31px rgba(0, 242, 96, 1);
+
+        &:hover {
+            color: $button-hover-color
+        }
+    }
+
+    &__icon {
+        path {
+            fill: red;
+        }
+    }
+  }
+
+
+

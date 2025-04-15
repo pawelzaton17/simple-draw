@@ -1,12 +1,4 @@
-$primary-color: #00f260;
-$secondary-color: #0575e6;
-$background-color: #1e1e1e;
-$text-color: #fff;
-$highlight-color: $primary-color;
-$button-hover-color: #00c24c;
-$button-disabled-color: #666;
-$input-background-color: #2c2c2c;
-$font-family: "Segoe UI", sans-serif;
+@use "./variables" as *;
 
 html, body {
   height: 100%;
@@ -34,6 +26,7 @@ body {
   justify-content: center;
   min-height: 32vh;
   font-weight: 700;
+  position: relative;
 }
 
 h1 {
@@ -144,4 +137,5 @@ h1 {
   h1 {
     font-size: 1.625rem;
   }
+  
 }
