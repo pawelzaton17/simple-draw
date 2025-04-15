@@ -1,5 +1,3 @@
-import React from "react";
-
 const ProductDrawer = ({ onDraw, isStoreSelected }) => {
   return (
     <div className="product-drawer">

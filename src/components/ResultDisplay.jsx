@@ -1,5 +1,3 @@
-import React from "react";
-
 const ResultDisplay = ({ product }) => {
   return (
     <div className="result-display">

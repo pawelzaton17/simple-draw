@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import Confetti from "react-confetti";
 import winSound from "../sounds/goodresult-82807.mp3";
 import StoreSelector from "./StoreSelector";

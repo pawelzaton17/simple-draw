@@ -1,5 +1,3 @@
-import React from "react";
-
 const StoreSelector = ({ stores, selectedStore, onStoreChange }) => {
   return (
     <div className="store-selector">
