@@ -5,7 +5,7 @@ import StoreSelector from "./StoreSelector";
 import ProductDrawer from "./ProductDrawer";
 import ResultDisplay from "./ResultDisplay";
 import { predefinedStores, cheatDayOptions, specialPlaces, storeProducts } from "../constants/data";
-import "./SimpleDraw.scss";
+import "../styles/SimpleDraw.scss";
 
 const SimpleDraw = () => {
   const [selectedStore, setSelectedStore] = useState("");
@@ -16,7 +16,7 @@ const SimpleDraw = () => {
   const [result, setResult] = useState("");
 
   const audio = new Audio(winSound);
-  audio.volume = 0.3;
+  audio.volume = 0.1;
 
   const handleStoreChange = (e) => {
     setSelectedStore(e.target.value);
