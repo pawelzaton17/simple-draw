@@ -33,6 +33,7 @@ body {
   flex-direction: column;
   justify-content: center;
   min-height: 32vh;
+  font-weight: 700;
 }
 
 h1 {
@@ -45,6 +46,8 @@ h1 {
 .toggles {
   margin-bottom: 1.5rem;
 }
+
+
 
 .store-selector {
   display: flex;
