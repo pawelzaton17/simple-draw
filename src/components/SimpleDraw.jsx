@@ -88,7 +88,7 @@ const SimpleDraw = () => {
         <Confetti
           width={window.innerWidth}
           height={window.innerHeight}
-          numberOfPieces={200}
+          numberOfPieces={3000}
           recycle={false}
         />
       )}
