@@ -4,6 +4,10 @@ export const predefinedStores = [
   "Netto",
   "Biedronka",
   "Lidl",
+  "Carrefour",
+  "Żabka",
+  "Aldi",
+  "Centrum",
 ];
 
 export const commonProducts = [
