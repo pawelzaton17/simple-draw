@@ -4,7 +4,12 @@ import winSound from "../sounds/goodresult-82807.mp3";
 import StoreSelector from "./StoreSelector";
 import ProductDrawer from "./ProductDrawer";
 import ResultDisplay from "./ResultDisplay";
-import { predefinedStores, cheatDayOptions, specialPlaces, storeProducts } from "../constants/data";
+import {
+  predefinedStores,
+  cheatDayOptions,
+  specialPlaces,
+  storeProducts,
+} from "../constants/data";
 import "../styles/SimpleDraw.scss";
 
 const SimpleDraw = () => {
@@ -24,8 +29,13 @@ const SimpleDraw = () => {
   const drawProduct = () => {
     let drawnProduct;
     if (cheatDayEnabled) {
-      const weightedOptions = [...cheatDayOptions, ...cheatDayOptions, cheatDayOptions[0]];
-      drawnProduct = weightedOptions[Math.floor(Math.random() * weightedOptions.length)];
+      const weightedOptions = [
+        ...cheatDayOptions,
+        ...cheatDayOptions,
+        cheatDayOptions[0],
+      ];
+      drawnProduct =
+        weightedOptions[Math.floor(Math.random() * weightedOptions.length)];
     } else if (specialPlaceEnabled) {
       const options = [];
       if (selectedStore) {
@@ -37,11 +47,13 @@ const SimpleDraw = () => {
         drawnProduct = specialPlaces[0];
       } else {
         if (!selectedStore) return;
-        drawnProduct = storeProducts[Math.floor(Math.random() * storeProducts.length)];
+        drawnProduct =
+          storeProducts[Math.floor(Math.random() * storeProducts.length)];
       }
     } else {
       if (!selectedStore) return;
-      drawnProduct = storeProducts[Math.floor(Math.random() * storeProducts.length)];
+      drawnProduct =
+        storeProducts[Math.floor(Math.random() * storeProducts.length)];
     }
     setResult(drawnProduct);
     setShowConfetti(true);
@@ -80,7 +92,7 @@ const SimpleDraw = () => {
               if (!specialPlaceEnabled) setCheatDayEnabled(false);
             }}
           />
-          Sklep specjalny?
+          Special event?
         </label>
       </div>
       {showConfetti && (
