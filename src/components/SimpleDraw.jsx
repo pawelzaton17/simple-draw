@@ -9,7 +9,6 @@ import "../styles/SimpleDraw.scss";
 
 const SimpleDraw = () => {
   const [selectedStore, setSelectedStore] = useState("");
-  const [selectedProduct, setSelectedProduct] = useState(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const [cheatDayEnabled, setCheatDayEnabled] = useState(false);
   const [specialPlaceEnabled, setSpecialPlaceEnabled] = useState(false);
