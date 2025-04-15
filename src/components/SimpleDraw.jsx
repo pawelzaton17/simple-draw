@@ -64,7 +64,7 @@ const SimpleDraw = () => {
 
   return (
     <div className="simple-draw-container">
-      <h1>🍫Losowanie Produkt🍔</h1>
+      <h1>🍫 Losowanie Produktu 🍔</h1>
       <StoreSelector
         stores={predefinedStores}
         selectedStore={selectedStore}
