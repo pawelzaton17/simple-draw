@@ -20,12 +20,14 @@ export const commonProducts = [
   "Chrupki",
   "Słone przekąski",
   "Ciasteczka",
-  "Cały dzien jedne kolor",
   "Słodkie przekąski",
 ];
 
 export const cheatDayOptions = ["Pizza", "Kebab", "Lody"];
 
-export const specialPlaces = ["Cukiernia na wyspie w galerii"];
+export const specialPlaces = [
+  "Cukiernia na wyspie w galerii",
+  "Cały dzień jeden kolor",
+];
 
 export const storeProducts = commonProducts;
