@@ -30,7 +30,7 @@ const SimpleDraw = () => {
   const [specialPlaceEnabled, setSpecialPlaceEnabled] = useState(false);
 
   const audio = new Audio(winSound);
-  audio.volume = 0.3;
+  audio.volume = 0.1;
 
   const handleStoreChange = (e) => {
     setSelectedStore(e.target.value);
