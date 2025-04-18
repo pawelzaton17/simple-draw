@@ -28,7 +28,7 @@ export const commonProducts = [
   "Słodkie przekąski",
 ];
 
-export const cheatDayOptions = ["Pizza", "Kebab", "Lody"];
+export const cheatDayOptions = ["Pizza", "Kebab", "Lody", "Gofry"];
 
 export const specialPlaces = [
   "Cukiernia na wyspie w galerii",
