@@ -43,17 +43,12 @@ export const specialPlaces = [
   "Cały dzień jeden kolor",
 ];
 
-export const brandProducts = {
-  Kinder: ["Kinder Jajko", "Kinder Bueno", "Kinder Czekolada"],
-  Oreo: ["Oreo ciasta", "Lody Oreo", "Oreo Shake"],
-  Milka: ["Milka Oreo", "Milka z orzechami", "Milka biała"],
-  Wedel: ["Ptasie Mleczko", "Czekolada Wedel", "Baton Wedel"],
-  Pepsi: ["Pepsi", "Pepsi Max", "Pepsi Twist"],
-  CocaCola: ["Coca-Cola", "Coca-Cola Zero", "Coca-Cola Cherry"],
-  Fanta: ["Fanta", "Fanta Zero", "Fanta Orange"],
-  Monster: ["Monster Energy", "Monster Zero", "Monster Ultra"],
-  Pringles: ["Pringles Original", "Pringles Sour Cream", "Pringles BBQ"],
-  Twix: ["Twix", "Twix Peanut Butter", "Twix Cookies & Cream"],
+export const brandProductMap = {
+  Kinder: ["Niespodzianka", "Czekolada", "Bueno", "Country"],
+  Milka: ["Oreo", "Brownie", "Baton", "Czekolada biała"],
+  Oreo: ["Lody", "Ciastka klasyczne", "Shake"],
+  Wedel: ["Czekolada gorzka", "Ptasie mleczko", "Baton WW"],
+  Haribo: ["Złote misie", "Żelki kwaśne", "Starmix"],
 };
 
 export const storeProducts = commonProducts;
