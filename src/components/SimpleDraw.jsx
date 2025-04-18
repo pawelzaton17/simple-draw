@@ -7,7 +7,7 @@ import {
   specialPlaces,
   storeProducts,
   brandProductMap,
-} from "../constants/data";
+} from "../constants/data.js";
 import "../styles/SimpleDraw.scss";
 
 const weightedRandom = (items, weights) => {
@@ -26,7 +26,7 @@ const SimpleDraw = () => {
   const [showConfetti, setShowConfetti] = useState(false);
   const [cheatDayEnabled, setCheatDayEnabled] = useState(false);
   const [specialPlaceEnabled, setSpecialPlaceEnabled] = useState(false);
-  const [standardDraw, setStandardDraw] = useState(false);
+  const [isAdvancedDraw, setIsAdvancedDraw] = useState(false);
   const [history, setHistory] = useState([]);
 
   const audio = new Audio(winSound);
@@ -50,16 +50,16 @@ const SimpleDraw = () => {
   const drawProduct = () => {
     let product;
 
-    if (standardDraw) {
-      if (!selectedStore) return;
-      product = storeProducts[Math.floor(Math.random() * storeProducts.length)];
-    } else {
+    if (isAdvancedDraw) {
       const brands = Object.keys(brandProductMap);
       const selectedBrand = brands[Math.floor(Math.random() * brands.length)];
       const brandProducts = brandProductMap[selectedBrand];
       const selectedBrandProduct =
         brandProducts[Math.floor(Math.random() * brandProducts.length)];
       product = `${selectedBrand} — ${selectedBrandProduct}`;
+    } else {
+      if (!selectedStore) return;
+      product = storeProducts[Math.floor(Math.random() * storeProducts.length)];
     }
 
     if (cheatDayEnabled) {
@@ -103,8 +103,8 @@ const SimpleDraw = () => {
           onChange={handleStoreChange}
         >
           <option value="">-- wybierz --</option>
-          {predefinedStores.map((store) => (
-            <option key={store} value={store}>
+          {predefinedStores.map((store, idx) => (
+            <option key={`${store}-${idx}`} value={store}>
               {store}
             </option>
           ))}
@@ -113,10 +113,10 @@ const SimpleDraw = () => {
 
       <button
         onClick={drawProduct}
-        disabled={!selectedStore && standardDraw}
+        disabled={!selectedStore && !isAdvancedDraw}
         className="simple-draw__draw-button"
       >
-        {standardDraw && !selectedStore ? "Wybierz sklep" : "Losuj produkt"}
+        {isAdvancedDraw && !selectedStore ? "Wybierz sklep" : "Losuj produkt"}
       </button>
 
       <div className="simple-draw__result">
@@ -153,10 +153,11 @@ const SimpleDraw = () => {
         <label>
           <input
             type="checkbox"
-            checked={standardDraw}
-            onChange={() => setStandardDraw(!standardDraw)}
+            checked={isAdvancedDraw}
+            onChange={() => setIsAdvancedDraw(!isAdvancedDraw)}
           />
-          Standardowe losowanie
+          Losowanie 2.0: Marka + Rodzaj{" "}
+          <span className="beta-text">(Beta)</span>
         </label>
       </div>
 
