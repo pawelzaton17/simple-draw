@@ -9,6 +9,7 @@ import {
   cheatDayOptions,
   specialPlaces,
   storeProducts,
+  brandProducts,
 } from "../constants/data";
 import "../styles/SimpleDraw.scss";
 
@@ -28,6 +29,7 @@ const SimpleDraw = () => {
   const [showConfetti, setShowConfetti] = useState(false);
   const [cheatDayEnabled, setCheatDayEnabled] = useState(false);
   const [specialPlaceEnabled, setSpecialPlaceEnabled] = useState(false);
+  const [standardMode, setStandardMode] = useState(false); // <--- nowy checkbox
 
   const audio = new Audio(winSound);
   audio.volume = 0.1;
@@ -38,24 +40,38 @@ const SimpleDraw = () => {
 
   const drawProduct = () => {
     let product;
-    if (cheatDayEnabled) {
-      const pool = [...storeProducts, ...cheatDayOptions];
-      const weights = [
-        ...storeProducts.map(() => 1),
-        ...cheatDayOptions.map(() => 1.3),
-      ];
-      product = weightedRandom(pool, weights);
-    } else if (specialPlaceEnabled) {
-      const pool = [...storeProducts, ...specialPlaces];
-      const weights = [
-        ...storeProducts.map(() => 1),
-        ...specialPlaces.map(() => 1.3),
-      ];
-      product = weightedRandom(pool, weights);
+
+    if (standardMode) {
+      // stare losowanie
+      if (cheatDayEnabled) {
+        const pool = [...storeProducts, ...cheatDayOptions];
+        const weights = [
+          ...storeProducts.map(() => 1),
+          ...cheatDayOptions.map(() => 1.3),
+        ];
+        product = weightedRandom(pool, weights);
+      } else if (specialPlaceEnabled) {
+        const pool = [...storeProducts, ...specialPlaces];
+        const weights = [
+          ...storeProducts.map(() => 1),
+          ...specialPlaces.map(() => 1.3),
+        ];
+        product = weightedRandom(pool, weights);
+      } else {
+        if (!selectedStore) return;
+        product =
+          storeProducts[Math.floor(Math.random() * storeProducts.length)];
+      }
     } else {
-      if (!selectedStore) return;
-      product = storeProducts[Math.floor(Math.random() * storeProducts.length)];
+      // nowe losowanie: marka + produkt
+      const brands = Object.keys(brandProducts);
+      const selectedBrand = brands[Math.floor(Math.random() * brands.length)];
+      const products = brandProducts[selectedBrand];
+      const selectedProduct =
+        products[Math.floor(Math.random() * products.length)];
+      product = `${selectedBrand} ➜ ${selectedProduct}`;
     }
+
     setSelectedProduct(product);
     setShowConfetti(true);
     audio.play().catch(() => {});
@@ -70,7 +86,10 @@ const SimpleDraw = () => {
         selectedStore={selectedStore}
         onStoreChange={handleStoreChange}
       />
-      <ProductDrawer onDraw={drawProduct} isStoreSelected={!!selectedStore} />
+      <ProductDrawer
+        onDraw={drawProduct}
+        isStoreSelected={!!selectedStore || !standardMode}
+      />
       <ResultDisplay product={selectedProduct} />
       <div className="toggles">
         <label>
@@ -81,6 +100,7 @@ const SimpleDraw = () => {
               setCheatDayEnabled(!cheatDayEnabled);
               if (!cheatDayEnabled) setSpecialPlaceEnabled(false);
             }}
+            disabled={!standardMode}
           />
           Cheat Day?
         </label>
@@ -92,8 +112,17 @@ const SimpleDraw = () => {
               setSpecialPlaceEnabled(!specialPlaceEnabled);
               if (!specialPlaceEnabled) setCheatDayEnabled(false);
             }}
+            disabled={!standardMode}
           />
           Sklep specjalny?
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            checked={standardMode}
+            onChange={() => setStandardMode(!standardMode)}
+          />
+          Standardowe Losowanie
         </label>
       </div>
       {showConfetti && (
