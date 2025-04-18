@@ -8,6 +8,7 @@ export const predefinedStores = [
   "Żabka",
   "Aldi",
   "Centrum",
+  "Aldi",
 ];
 
 export const commonProducts = [
