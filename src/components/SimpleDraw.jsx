@@ -8,6 +8,12 @@ import {
   storeProducts,
   brandProductMap,
 } from "../constants/data.js";
+import StoreSelector from "./SimpleDraw/StoreSelector.jsx";
+import DrawButton from "./SimpleDraw/DrawButton.jsx";
+import ResultDisplay from "./SimpleDraw/ResultDisplay.jsx";
+import ToggleOptions from "./SimpleDraw/ToggleOptions.jsx";
+import HistoryList from "./SimpleDraw/HistoryList.jsx";
+import BrandFilterModal from "./SimpleDraw/BrandFilterModal.jsx";
 import "../styles/SimpleDraw.scss";
 
 const weightedRandom = (items, weights) => {
@@ -28,6 +34,10 @@ const SimpleDraw = () => {
   const [specialPlaceEnabled, setSpecialPlaceEnabled] = useState(false);
   const [isAdvancedDraw, setIsAdvancedDraw] = useState(false);
   const [history, setHistory] = useState([]);
+  const [showBrandFilter, setShowBrandFilter] = useState(false);
+  const [selectedBrands, setSelectedBrands] = useState(
+    Object.keys(brandProductMap)
+  );
 
   const audio = new Audio(winSound);
   audio.volume = 0.1;
@@ -43,15 +53,11 @@ const SimpleDraw = () => {
     localStorage.setItem("drawHistory", JSON.stringify(history));
   }, [history]);
 
-  const handleStoreChange = (e) => {
-    setSelectedStore(e.target.value);
-  };
-
-  const drawProduct = () => {
+  const handleDraw = () => {
     let product;
 
     if (isAdvancedDraw) {
-      const brands = Object.keys(brandProductMap);
+      const brands = selectedBrands;
       const selectedBrand = brands[Math.floor(Math.random() * brands.length)];
       const brandProducts = brandProductMap[selectedBrand];
       const selectedBrandProduct =
@@ -95,91 +101,45 @@ const SimpleDraw = () => {
     <div className="simple-draw__container">
       <h1 className="simple-draw__title">🍫 Losowanie Produktu 🍔</h1>
 
-      <div className="simple-draw__store-selector">
-        <label htmlFor="store-select">Wybierz sklep:</label>
-        <select
-          id="store-select"
-          value={selectedStore}
-          onChange={handleStoreChange}
+      <StoreSelector
+        stores={predefinedStores}
+        selectedStore={selectedStore}
+        onStoreChange={(e) => setSelectedStore(e.target.value)}
+      />
+
+      <DrawButton
+        isAdvancedDraw={isAdvancedDraw}
+        selectedStore={selectedStore}
+        onDraw={handleDraw}
+      />
+
+      <ResultDisplay product={selectedProduct} />
+
+      <ToggleOptions
+        cheatDayEnabled={cheatDayEnabled}
+        specialPlaceEnabled={specialPlaceEnabled}
+        isAdvancedDraw={isAdvancedDraw}
+        onCheatToggle={() => {
+          setCheatDayEnabled(!cheatDayEnabled);
+          if (!cheatDayEnabled) setSpecialPlaceEnabled(false);
+        }}
+        onSpecialToggle={() => {
+          setSpecialPlaceEnabled(!specialPlaceEnabled);
+          if (!specialPlaceEnabled) setCheatDayEnabled(false);
+        }}
+        onAdvancedToggle={() => setIsAdvancedDraw(!isAdvancedDraw)}
+      />
+
+      {isAdvancedDraw && (
+        <button
+          className="simple-draw__filter-button"
+          onClick={() => setShowBrandFilter(true)}
         >
-          <option value="">-- wybierz --</option>
-          {predefinedStores.map((store, idx) => (
-            <option key={`${store}-${idx}`} value={store}>
-              {store}
-            </option>
-          ))}
-        </select>
-      </div>
+          🎯 Filtruj marki ({selectedBrands.length})
+        </button>
+      )}
 
-      <button
-        onClick={drawProduct}
-        disabled={!selectedStore && !isAdvancedDraw}
-        className="simple-draw__draw-button"
-      >
-        {isAdvancedDraw && !selectedStore ? "Wybierz sklep" : "Losuj produkt"}
-      </button>
-
-      <div className="simple-draw__result">
-        {selectedProduct && (
-          <h2>
-            🎉 Dziś kup: <span className="highlight">{selectedProduct}</span>
-          </h2>
-        )}
-      </div>
-
-      <div className="simple-draw__toggles">
-        <label>
-          <input
-            type="checkbox"
-            checked={cheatDayEnabled}
-            onChange={() => {
-              setCheatDayEnabled(!cheatDayEnabled);
-              if (!cheatDayEnabled) setSpecialPlaceEnabled(false);
-            }}
-          />
-          Cheat Day?
-        </label>
-        <label>
-          <input
-            type="checkbox"
-            checked={specialPlaceEnabled}
-            onChange={() => {
-              setSpecialPlaceEnabled(!specialPlaceEnabled);
-              if (!specialPlaceEnabled) setCheatDayEnabled(false);
-            }}
-          />
-          Sklep specjalny?
-        </label>
-        <label>
-          <input
-            type="checkbox"
-            checked={isAdvancedDraw}
-            onChange={() => setIsAdvancedDraw(!isAdvancedDraw)}
-          />
-          Losowanie 2.0: Marka + Rodzaj{" "}
-          <span className="beta-text">(Beta)</span>
-        </label>
-      </div>
-
-      <div className="simple-draw__history">
-        <h3>📜 Historia losowań</h3>
-        <ul className="simple-draw__history-list">
-          {history.map((entry, idx) => (
-            <li key={idx}>
-              <strong>{entry.product}</strong>
-              <em>{entry.timestamp}</em>
-            </li>
-          ))}
-        </ul>
-        {history.length > 0 && (
-          <button
-            className="simple-draw__history-clear-btn"
-            onClick={clearHistory}
-          >
-            Wyczyść historię
-          </button>
-        )}
-      </div>
+      <HistoryList history={history} onClear={clearHistory} />
 
       {showConfetti && (
         <Confetti
@@ -189,6 +149,14 @@ const SimpleDraw = () => {
           recycle={false}
         />
       )}
+
+      <BrandFilterModal
+        isOpen={showBrandFilter}
+        onClose={() => setShowBrandFilter(false)}
+        allBrands={Object.keys(brandProductMap)}
+        selectedBrands={selectedBrands}
+        setSelectedBrands={setSelectedBrands}
+      />
     </div>
   );
 };
