@@ -74,6 +74,9 @@ const SimpleDraw = () => {
   const { predefinedStores, commonProducts, cheatDayOptions, specialPlaces } =
     data;
 
+  const getRandomItem = (array) =>
+    array[Math.floor(Math.random() * array.length)];
+
   const finalizeDraw = (product) => {
     const timestamp = new Date().toLocaleString();
     setHistory([{ product, timestamp }, ...history]);
@@ -85,20 +88,22 @@ const SimpleDraw = () => {
 
   const handleDraw = () => {
     if (isAdvancedDraw) {
-      const selectedBrand = Object.keys(brandProductMap)[0];
-      const product = `${selectedBrand} — ${brandProductMap[selectedBrand][0]}`;
+      const selectedBrand = getRandomItem(Object.keys(brandProductMap));
+      const product = `${selectedBrand} — ${getRandomItem(
+        brandProductMap[selectedBrand]
+      )}`;
       finalizeDraw(product);
       return;
     }
 
     if (!selectedStore) return;
 
-    let product = commonProducts[0];
+    let product = getRandomItem(commonProducts);
 
     if (cheatDayEnabled) {
-      product = cheatDayOptions[0];
+      product = getRandomItem(cheatDayOptions);
     } else if (specialPlaceEnabled) {
-      product = specialPlaces[0];
+      product = getRandomItem(specialPlaces);
     }
 
     finalizeDraw(product);
