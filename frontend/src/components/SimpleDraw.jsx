@@ -1,30 +1,14 @@
 import { useState, useEffect } from "react";
 import Confetti from "react-confetti";
 import winSound from "../sounds/goodresult-82807.mp3";
-import {
-  predefinedStores,
-  cheatDayOptions,
-  specialPlaces,
-  storeProducts,
-  brandProductMap,
-} from "../constants/data.js";
 import StoreSelector from "./SimpleDraw/StoreSelector.jsx";
 import DrawButton from "./SimpleDraw/DrawButton.jsx";
 import ResultDisplay from "./SimpleDraw/ResultDisplay.jsx";
 import ToggleOptions from "./SimpleDraw/ToggleOptions.jsx";
 import HistoryList from "./SimpleDraw/HistoryList.jsx";
 import BrandFilterModal from "./SimpleDraw/BrandFilterModal.jsx";
+import { fetchEntries, fetchBrandProductMap } from "../api/contentfulClient"; // Import funkcji
 import "../styles/SimpleDraw.scss";
-
-const weightedRandom = (items, weights) => {
-  const totalWeight = weights.reduce((sum, w) => sum + w, 0);
-  const rnd = Math.random() * totalWeight;
-  let cumulative = 0;
-  for (let i = 0; i < items.length; i++) {
-    cumulative += weights[i];
-    if (rnd < cumulative) return items[i];
-  }
-};
 
 const SimpleDraw = () => {
   const [selectedStore, setSelectedStore] = useState("");
@@ -35,9 +19,13 @@ const SimpleDraw = () => {
   const [isAdvancedDraw, setIsAdvancedDraw] = useState(false);
   const [history, setHistory] = useState([]);
   const [showBrandFilter, setShowBrandFilter] = useState(false);
-  const [selectedBrands, setSelectedBrands] = useState(
-    Object.keys(brandProductMap)
-  );
+  const [selectedBrands, setSelectedBrands] = useState([]);
+  const [predefinedStores, setPredefinedStores] = useState([]);
+  const [commonProducts, setCommonProducts] = useState([]);
+  const [cheatDayOptions, setCheatDayOptions] = useState([]);
+  const [specialPlaces, setSpecialPlaces] = useState([]);
+  const [brandProductMap, setBrandProductMap] = useState({});
+  const [loading, setLoading] = useState(true);
 
   const audio = new Audio(winSound);
   audio.volume = 0.1;
@@ -53,6 +41,32 @@ const SimpleDraw = () => {
     localStorage.setItem("drawHistory", JSON.stringify(history));
   }, [history]);
 
+  // Pobieranie danych z Contentful
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const stores = await fetchEntries("predefinedStores");
+        const products = await fetchEntries("commonProducts");
+        const cheatOptions = await fetchEntries("cheatDayOptions");
+        const places = await fetchEntries("specialPlaces");
+        const brandMap = await fetchBrandProductMap();
+
+        setPredefinedStores(stores.map((store) => store.storeName));
+        setCommonProducts(products.map((product) => product.product));
+        setCheatDayOptions(cheatOptions.map((option) => option.cheatDayOption));
+        setSpecialPlaces(places.map((place) => place.specialPlace));
+        setBrandProductMap(brandMap);
+        setSelectedBrands(Object.keys(brandMap));
+      } catch (error) {
+        console.error("Error fetching data from Contentful:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   const handleDraw = () => {
     let product;
 
@@ -65,20 +79,21 @@ const SimpleDraw = () => {
       product = `${selectedBrand} — ${selectedBrandProduct}`;
     } else {
       if (!selectedStore) return;
-      product = storeProducts[Math.floor(Math.random() * storeProducts.length)];
+      product =
+        commonProducts[Math.floor(Math.random() * commonProducts.length)];
     }
 
     if (cheatDayEnabled) {
-      const pool = [...storeProducts, ...cheatDayOptions];
+      const pool = [...commonProducts, ...cheatDayOptions];
       const weights = [
-        ...storeProducts.map(() => 1),
+        ...commonProducts.map(() => 1),
         ...cheatDayOptions.map(() => 1.3),
       ];
       product = weightedRandom(pool, weights);
     } else if (specialPlaceEnabled) {
-      const pool = [...storeProducts, ...specialPlaces];
+      const pool = [...commonProducts, ...specialPlaces];
       const weights = [
-        ...storeProducts.map(() => 1),
+        ...commonProducts.map(() => 1),
         ...specialPlaces.map(() => 1.3),
       ];
       product = weightedRandom(pool, weights);
@@ -96,6 +111,10 @@ const SimpleDraw = () => {
     setHistory([]);
     localStorage.removeItem("drawHistory");
   };
+
+  if (loading) {
+    return <p>Ładowanie danych...</p>;
+  }
 
   return (
     <div className="simple-draw__container">
@@ -119,14 +138,8 @@ const SimpleDraw = () => {
         cheatDayEnabled={cheatDayEnabled}
         specialPlaceEnabled={specialPlaceEnabled}
         isAdvancedDraw={isAdvancedDraw}
-        onCheatToggle={() => {
-          setCheatDayEnabled(!cheatDayEnabled);
-          if (!cheatDayEnabled) setSpecialPlaceEnabled(false);
-        }}
-        onSpecialToggle={() => {
-          setSpecialPlaceEnabled(!specialPlaceEnabled);
-          if (!specialPlaceEnabled) setCheatDayEnabled(false);
-        }}
+        onCheatToggle={() => setCheatDayEnabled(!cheatDayEnabled)}
+        onSpecialToggle={() => setSpecialPlaceEnabled(!specialPlaceEnabled)}
         onAdvancedToggle={() => setIsAdvancedDraw(!isAdvancedDraw)}
       />
 
