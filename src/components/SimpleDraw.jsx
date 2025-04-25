@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Confetti from "react-confetti";
 import winSound from "../sounds/goodresult-82807.mp3";
 import StoreSelector from "./SimpleDraw/StoreSelector.jsx";
@@ -27,9 +27,13 @@ const SimpleDraw = () => {
   const [brandProductMap, setBrandProductMap] = useState({});
   const [loading, setLoading] = useState(true);
 
-  const audio = new Audio(winSound);
-  audio.volume = 0.1;
+  const audio = useMemo(() => {
+    const sound = new Audio(winSound);
+    sound.volume = 0.1;
+    return sound;
+  }, []);
 
+  // Load history from localStorage
   useEffect(() => {
     const storedHistory = localStorage.getItem("drawHistory");
     if (storedHistory) {
@@ -37,23 +41,53 @@ const SimpleDraw = () => {
     }
   }, []);
 
+  // Save history to localStorage
   useEffect(() => {
     localStorage.setItem("drawHistory", JSON.stringify(history));
   }, [history]);
 
+  // Fetch data from Contentful
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const stores = await fetchEntries("predefinedStores");
-        const products = await fetchEntries("commonProducts");
-        const cheatOptions = await fetchEntries("cheatDayOptions");
-        const places = await fetchEntries("specialPlaces");
-        const brandMap = await fetchBrandProductMap();
+        const dataFetchers = [
+          {
+            key: "predefinedStores",
+            fetcher: () => fetchEntries("predefinedStores"),
+            mapper: (store) => store.storeName,
+          },
+          {
+            key: "commonProducts",
+            fetcher: () => fetchEntries("commonProducts"),
+            mapper: (product) => product.product,
+          },
+          {
+            key: "cheatDayOptions",
+            fetcher: () => fetchEntries("cheatDayOptions"),
+            mapper: (option) => option.cheatDayOption,
+          },
+          {
+            key: "specialPlaces",
+            fetcher: () => fetchEntries("specialPlaces"),
+            mapper: (place) => place.specialPlace,
+          },
+        ];
 
-        setPredefinedStores(stores.map((store) => store.storeName));
-        setCommonProducts(products.map((product) => product.product));
-        setCheatDayOptions(cheatOptions.map((option) => option.cheatDayOption));
-        setSpecialPlaces(places.map((place) => place.specialPlace));
+        const results = await Promise.all(
+          dataFetchers.map(async ({ fetcher, mapper }) => {
+            const data = await fetcher();
+            return data.map(mapper);
+          })
+        );
+
+        const [stores, products, cheatOptions, places] = results;
+
+        setPredefinedStores(stores);
+        setCommonProducts(products);
+        setCheatDayOptions(cheatOptions);
+        setSpecialPlaces(places);
+
+        const brandMap = await fetchBrandProductMap();
         setBrandProductMap(brandMap);
         setSelectedBrands(Object.keys(brandMap));
       } catch (error) {
@@ -66,44 +100,67 @@ const SimpleDraw = () => {
     fetchData();
   }, []);
 
-  const handleDraw = () => {
-    let product;
+  // Helper functions
+  const getRandomItem = (array) =>
+    array[Math.floor(Math.random() * array.length)];
 
-    if (isAdvancedDraw) {
-      const brands = selectedBrands;
-      const selectedBrand = brands[Math.floor(Math.random() * brands.length)];
-      const brandProducts = brandProductMap[selectedBrand];
-      const selectedBrandProduct =
-        brandProducts[Math.floor(Math.random() * brandProducts.length)];
-      product = `${selectedBrand} — ${selectedBrandProduct}`;
-    } else {
-      if (!selectedStore) return;
-      product =
-        commonProducts[Math.floor(Math.random() * commonProducts.length)];
-    }
+  const handleAdvancedDraw = () => {
+    const selectedBrand = getRandomItem(selectedBrands);
+    const brandProducts = brandProductMap[selectedBrand];
+    const selectedBrandProduct = getRandomItem(brandProducts);
+    return `${selectedBrand} — ${selectedBrandProduct}`;
+  };
 
-    if (cheatDayEnabled) {
-      const pool = [...commonProducts, ...cheatDayOptions];
-      const weights = [
-        ...commonProducts.map(() => 1),
-        ...cheatDayOptions.map(() => 1.3),
-      ];
-      product = weightedRandom(pool, weights);
-    } else if (specialPlaceEnabled) {
-      const pool = [...commonProducts, ...specialPlaces];
-      const weights = [
-        ...commonProducts.map(() => 1),
-        ...specialPlaces.map(() => 1.3),
-      ];
-      product = weightedRandom(pool, weights);
-    }
+  const handleCheatDayDraw = () => {
+    const pool = [...commonProducts, ...cheatDayOptions];
+    const weights = [
+      ...commonProducts.map(() => 1),
+      ...cheatDayOptions.map(() => 1.3),
+    ];
+    return weightedRandom(pool, weights);
+  };
 
+  const handleSpecialPlaceDraw = () => {
+    const pool = [...commonProducts, ...specialPlaces];
+    const weights = [
+      ...commonProducts.map(() => 1),
+      ...specialPlaces.map(() => 1.3),
+    ];
+    return weightedRandom(pool, weights);
+  };
+
+  const finalizeDraw = (product) => {
     const timestamp = new Date().toLocaleString();
     setSelectedProduct(product);
     setHistory([{ product, timestamp }, ...history]);
     setShowConfetti(true);
-    audio.play().catch(() => {});
+
+    audio.currentTime = 0;
+    audio.play().catch((err) => {
+      console.error("Error playing audio:", err);
+    });
+
     setTimeout(() => setShowConfetti(false), 3000);
+  };
+
+  const handleDraw = () => {
+    if (isAdvancedDraw) {
+      const product = handleAdvancedDraw();
+      finalizeDraw(product);
+      return;
+    }
+
+    if (!selectedStore) return;
+
+    let product = getRandomItem(commonProducts);
+
+    if (cheatDayEnabled) {
+      product = handleCheatDayDraw();
+    } else if (specialPlaceEnabled) {
+      product = handleSpecialPlaceDraw();
+    }
+
+    finalizeDraw(product);
   };
 
   const clearHistory = () => {
