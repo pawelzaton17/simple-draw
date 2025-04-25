@@ -7,7 +7,7 @@ import ResultDisplay from "./SimpleDraw/ResultDisplay.jsx";
 import ToggleOptions from "./SimpleDraw/ToggleOptions.jsx";
 import HistoryList from "./SimpleDraw/HistoryList.jsx";
 import BrandFilterModal from "./SimpleDraw/BrandFilterModal.jsx";
-import { fetchEntries, fetchBrandProductMap } from "../api/contentfulClient"; // Import funkcji
+import { fetchEntries, fetchBrandProductMap } from "../api/contentfulClient";
 import "../styles/SimpleDraw.scss";
 
 const SimpleDraw = () => {
@@ -41,7 +41,6 @@ const SimpleDraw = () => {
     localStorage.setItem("drawHistory", JSON.stringify(history));
   }, [history]);
 
-  // Pobieranie danych z Contentful
   useEffect(() => {
     const fetchData = async () => {
       try {
