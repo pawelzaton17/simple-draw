@@ -1,13 +1,17 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState } from "react";
 import Confetti from "react-confetti";
-import winSound from "../sounds/goodresult-82807.mp3";
 import StoreSelector from "./SimpleDraw/StoreSelector.jsx";
 import DrawButton from "./SimpleDraw/DrawButton.jsx";
 import ResultDisplay from "./SimpleDraw/ResultDisplay.jsx";
 import ToggleOptions from "./SimpleDraw/ToggleOptions.jsx";
 import HistoryList from "./SimpleDraw/HistoryList.jsx";
 import BrandFilterModal from "./SimpleDraw/BrandFilterModal.jsx";
-import { fetchEntries, fetchBrandProductMap } from "../api/contentfulClient";
+import useContentfulDataFetchers from "../hooks/useContentfulDataFetchers.js";
+import useLocalStorage from "../hooks/useLocalStorage.js";
+import useAudio from "../hooks/useAudio.js";
+import useFetchBrandProducts from "../hooks/useFetchBrandProducts.js";
+import { fetchEntries } from "../api/contentfulClient";
+import winSound from "../sounds/goodresult-82807.mp3";
 import "../styles/SimpleDraw.scss";
 
 const SimpleDraw = () => {
@@ -17,160 +21,88 @@ const SimpleDraw = () => {
   const [cheatDayEnabled, setCheatDayEnabled] = useState(false);
   const [specialPlaceEnabled, setSpecialPlaceEnabled] = useState(false);
   const [isAdvancedDraw, setIsAdvancedDraw] = useState(false);
-  const [history, setHistory] = useState([]);
   const [showBrandFilter, setShowBrandFilter] = useState(false);
-  const [selectedBrands, setSelectedBrands] = useState([]);
-  const [predefinedStores, setPredefinedStores] = useState([]);
-  const [commonProducts, setCommonProducts] = useState([]);
-  const [cheatDayOptions, setCheatDayOptions] = useState([]);
-  const [specialPlaces, setSpecialPlaces] = useState([]);
-  const [brandProductMap, setBrandProductMap] = useState({});
-  const [loading, setLoading] = useState(true);
+  const [history, setHistory] = useLocalStorage("drawHistory", []);
+  const playWinSound = useAudio(winSound, 0.1);
 
-  const audio = useMemo(() => {
-    const sound = new Audio(winSound);
-    sound.volume = 0.1;
-    return sound;
-  }, []);
+  const dataFetchers = [
+    {
+      key: "predefinedStores",
+      fetcher: () => fetchEntries("predefinedStores"),
+      mapper: (store) => store.storeName,
+    },
+    {
+      key: "commonProducts",
+      fetcher: () => fetchEntries("commonProducts"),
+      mapper: (product) => product.product,
+    },
+    {
+      key: "cheatDayOptions",
+      fetcher: () => fetchEntries("cheatDayOptions"),
+      mapper: (option) => option.cheatDayOption,
+    },
+    {
+      key: "specialPlaces",
+      fetcher: () => fetchEntries("specialPlaces"),
+      mapper: (place) => place.specialPlace,
+    },
+  ];
 
-  // Load history from localStorage
-  useEffect(() => {
-    const storedHistory = localStorage.getItem("drawHistory");
-    if (storedHistory) {
-      setHistory(JSON.parse(storedHistory));
-    }
-  }, []);
+  const { data, loading, error } = useContentfulDataFetchers(dataFetchers);
+  const { brandProductMap, loading: loadingBrands } = useFetchBrandProducts();
 
-  // Save history to localStorage
-  useEffect(() => {
-    localStorage.setItem("drawHistory", JSON.stringify(history));
-  }, [history]);
+  const loadingAll = loading || loadingBrands;
 
-  // Fetch data from Contentful
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const dataFetchers = [
-          {
-            key: "predefinedStores",
-            fetcher: () => fetchEntries("predefinedStores"),
-            mapper: (store) => store.storeName,
-          },
-          {
-            key: "commonProducts",
-            fetcher: () => fetchEntries("commonProducts"),
-            mapper: (product) => product.product,
-          },
-          {
-            key: "cheatDayOptions",
-            fetcher: () => fetchEntries("cheatDayOptions"),
-            mapper: (option) => option.cheatDayOption,
-          },
-          {
-            key: "specialPlaces",
-            fetcher: () => fetchEntries("specialPlaces"),
-            mapper: (place) => place.specialPlace,
-          },
-        ];
+  if (loadingAll) {
+    return (
+      <div className="simple-draw__container">
+        <h1 className="simple-draw__title">🍫 Losowanie Produktu 🍔</h1>
+        <p>Ładowanie danych...</p>
+      </div>
+    );
+  }
 
-        const results = await Promise.all(
-          dataFetchers.map(async ({ fetcher, mapper }) => {
-            const data = await fetcher();
-            return data.map(mapper);
-          })
-        );
+  if (error) {
+    return (
+      <div className="simple-draw__container">
+        <h1 className="simple-draw__title">🍫 Losowanie Produktu 🍔</h1>
+        <p>Błąd podczas ładowania danych: {error.message}</p>
+      </div>
+    );
+  }
 
-        const [stores, products, cheatOptions, places] = results;
-
-        setPredefinedStores(stores);
-        setCommonProducts(products);
-        setCheatDayOptions(cheatOptions);
-        setSpecialPlaces(places);
-
-        const brandMap = await fetchBrandProductMap();
-        setBrandProductMap(brandMap);
-        setSelectedBrands(Object.keys(brandMap));
-      } catch (error) {
-        console.error("Error fetching data from Contentful:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  // Helper functions
-  const getRandomItem = (array) =>
-    array[Math.floor(Math.random() * array.length)];
-
-  const handleAdvancedDraw = () => {
-    const selectedBrand = getRandomItem(selectedBrands);
-    const brandProducts = brandProductMap[selectedBrand];
-    const selectedBrandProduct = getRandomItem(brandProducts);
-    return `${selectedBrand} — ${selectedBrandProduct}`;
-  };
-
-  const handleCheatDayDraw = () => {
-    const pool = [...commonProducts, ...cheatDayOptions];
-    const weights = [
-      ...commonProducts.map(() => 1),
-      ...cheatDayOptions.map(() => 1.3),
-    ];
-    return weightedRandom(pool, weights);
-  };
-
-  const handleSpecialPlaceDraw = () => {
-    const pool = [...commonProducts, ...specialPlaces];
-    const weights = [
-      ...commonProducts.map(() => 1),
-      ...specialPlaces.map(() => 1.3),
-    ];
-    return weightedRandom(pool, weights);
-  };
+  const { predefinedStores, commonProducts, cheatDayOptions, specialPlaces } =
+    data;
 
   const finalizeDraw = (product) => {
     const timestamp = new Date().toLocaleString();
-    setSelectedProduct(product);
     setHistory([{ product, timestamp }, ...history]);
+    setSelectedProduct(product);
     setShowConfetti(true);
-
-    audio.currentTime = 0;
-    audio.play().catch((err) => {
-      console.error("Error playing audio:", err);
-    });
-
+    playWinSound();
     setTimeout(() => setShowConfetti(false), 3000);
   };
 
   const handleDraw = () => {
     if (isAdvancedDraw) {
-      const product = handleAdvancedDraw();
+      const selectedBrand = Object.keys(brandProductMap)[0];
+      const product = `${selectedBrand} — ${brandProductMap[selectedBrand][0]}`;
       finalizeDraw(product);
       return;
     }
 
     if (!selectedStore) return;
 
-    let product = getRandomItem(commonProducts);
+    let product = commonProducts[0];
 
     if (cheatDayEnabled) {
-      product = handleCheatDayDraw();
+      product = cheatDayOptions[0];
     } else if (specialPlaceEnabled) {
-      product = handleSpecialPlaceDraw();
+      product = specialPlaces[0];
     }
 
     finalizeDraw(product);
   };
-
-  const clearHistory = () => {
-    setHistory([]);
-    localStorage.removeItem("drawHistory");
-  };
-
-  if (loading) {
-    return <p>Ładowanie danych...</p>;
-  }
 
   return (
     <div className="simple-draw__container">
@@ -204,11 +136,11 @@ const SimpleDraw = () => {
           className="simple-draw__filter-button"
           onClick={() => setShowBrandFilter(true)}
         >
-          🎯 Filtruj marki ({selectedBrands.length})
+          🎯 Filtruj marki ({Object.keys(brandProductMap).length})
         </button>
       )}
 
-      <HistoryList history={history} onClear={clearHistory} />
+      <HistoryList history={history} onClear={() => setHistory([])} />
 
       {showConfetti && (
         <Confetti
@@ -223,8 +155,8 @@ const SimpleDraw = () => {
         isOpen={showBrandFilter}
         onClose={() => setShowBrandFilter(false)}
         allBrands={Object.keys(brandProductMap)}
-        selectedBrands={selectedBrands}
-        setSelectedBrands={setSelectedBrands}
+        selectedBrands={Object.keys(brandProductMap)}
+        setSelectedBrands={() => {}}
       />
     </div>
   );
