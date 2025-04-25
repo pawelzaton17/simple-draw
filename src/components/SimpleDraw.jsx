@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Confetti from "react-confetti";
 import StoreSelector from "./SimpleDraw/StoreSelector.jsx";
 import DrawButton from "./SimpleDraw/DrawButton.jsx";
@@ -22,6 +22,7 @@ const SimpleDraw = () => {
   const [specialPlaceEnabled, setSpecialPlaceEnabled] = useState(false);
   const [isAdvancedDraw, setIsAdvancedDraw] = useState(false);
   const [showBrandFilter, setShowBrandFilter] = useState(false);
+  const [selectedBrands, setSelectedBrands] = useState([]);
   const [history, setHistory] = useLocalStorage("drawHistory", []);
   const playWinSound = useAudio(winSound, 0.1);
 
@@ -50,6 +51,12 @@ const SimpleDraw = () => {
 
   const { data, loading, error } = useContentfulDataFetchers(dataFetchers);
   const { brandProductMap, loading: loadingBrands } = useFetchBrandProducts();
+
+  useEffect(() => {
+    if (!loadingBrands && brandProductMap) {
+      setSelectedBrands(Object.keys(brandProductMap));
+    }
+  }, [loadingBrands, brandProductMap]);
 
   const loadingAll = loading || loadingBrands;
 
@@ -88,7 +95,7 @@ const SimpleDraw = () => {
 
   const handleDraw = () => {
     if (isAdvancedDraw) {
-      const selectedBrand = getRandomItem(Object.keys(brandProductMap));
+      const selectedBrand = getRandomItem(selectedBrands);
       const product = `${selectedBrand} — ${getRandomItem(
         brandProductMap[selectedBrand]
       )}`;
@@ -141,7 +148,7 @@ const SimpleDraw = () => {
           className="simple-draw__filter-button"
           onClick={() => setShowBrandFilter(true)}
         >
-          🎯 Filtruj marki ({Object.keys(brandProductMap).length})
+          🎯 Filtruj marki ({selectedBrands.length})
         </button>
       )}
 
@@ -159,9 +166,9 @@ const SimpleDraw = () => {
       <BrandFilterModal
         isOpen={showBrandFilter}
         onClose={() => setShowBrandFilter(false)}
-        allBrands={Object.keys(brandProductMap)}
-        selectedBrands={Object.keys(brandProductMap)}
-        setSelectedBrands={() => {}}
+        allBrands={brandProductMap ? Object.keys(brandProductMap) : []}
+        selectedBrands={selectedBrands}
+        setSelectedBrands={setSelectedBrands}
       />
     </div>
   );

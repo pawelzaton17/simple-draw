@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import "../../styles/BrandFilterModal.scss";
 
 const BrandFilterModal = ({
@@ -10,11 +11,13 @@ const BrandFilterModal = ({
   if (!isOpen) return null;
 
   const toggleBrand = (brand) => {
-    if (selectedBrands.includes(brand)) {
-      setSelectedBrands(selectedBrands.filter((b) => b !== brand));
-    } else {
-      setSelectedBrands([...selectedBrands, brand]);
-    }
+    setSelectedBrands((prevSelectedBrands) => {
+      const updatedBrands = prevSelectedBrands.includes(brand)
+        ? prevSelectedBrands.filter((b) => b !== brand)
+        : [...prevSelectedBrands, brand];
+
+      return updatedBrands;
+    });
   };
 
   const handleOverlayClick = (e) => {
@@ -22,6 +25,17 @@ const BrandFilterModal = ({
       onClose();
     }
   };
+
+  if (!isOpen) return null;
+
+  if (
+    !allBrands ||
+    !Array.isArray(allBrands) ||
+    !Array.isArray(selectedBrands)
+  ) {
+    console.error("BrandFilterModal received invalid props");
+    return null;
+  }
 
   return (
     <div className="modal-overlay" onClick={handleOverlayClick}>

@@ -8,6 +8,7 @@ export const ContentfulProvider = ({ children }) => {
   const [cheatDayOptions, setCheatDayOptions] = useState([]);
   const [specialPlaces, setSpecialPlaces] = useState([]);
   const [predefinedStores, setPredefinedStores] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -18,6 +19,32 @@ export const ContentfulProvider = ({ children }) => {
 
         setPredefinedStores(
           predefinedStoresResponse.items.map((item) => item.fields.storeName)
+        );
+
+        const commonProductsResponse = await client.getEntries({
+          content_type: "commonProducts",
+        });
+
+        setCommonProducts(
+          commonProductsResponse.items.map((item) => item.fields.product)
+        );
+
+        const cheatDayOptionsResponse = await client.getEntries({
+          content_type: "cheatDayOptions",
+        });
+
+        setCheatDayOptions(
+          cheatDayOptionsResponse.items.map(
+            (item) => item.fields.cheatDayOption
+          )
+        );
+
+        const specialPlacesResponse = await client.getEntries({
+          content_type: "specialPlaces",
+        });
+
+        setSpecialPlaces(
+          specialPlacesResponse.items.map((item) => item.fields.specialPlace)
         );
       } catch (error) {
         console.error("Error fetching data from Contentful:", error);
@@ -33,6 +60,9 @@ export const ContentfulProvider = ({ children }) => {
     <ContentfulContext.Provider
       value={{
         predefinedStores,
+        commonProducts,
+        cheatDayOptions,
+        specialPlaces,
         loading,
       }}
     >
