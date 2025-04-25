@@ -1,4 +1,4 @@
-import "../../styles/BrandFilterModal.scss"; // Import your CSS styles here
+import "../../styles/BrandFilterModal.scss";
 
 const BrandFilterModal = ({
   isOpen,
@@ -17,8 +17,14 @@ const BrandFilterModal = ({
     }
   };
 
+  const handleOverlayClick = (e) => {
+    if (e.target.classList.contains("modal-overlay")) {
+      onClose();
+    }
+  };
+
   return (
-    <div className="modal-overlay">
+    <div className="modal-overlay" onClick={handleOverlayClick}>
       <div className="modal-content">
         <h2>🎯 Wybierz marki</h2>
         <div className="brand-list">
